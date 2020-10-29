@@ -1,0 +1,50 @@
+{
+  "type": "client",
+  "socket_id": 19085,
+  "result": 0,
+  "p": "log_in"
+}
+
+{
+  "sendback_appserver": 100000007,
+  "param": {
+    "socket_id": 100000007,
+    "type": 1,
+    "check_key": "s_get19085"
+  },
+  "p": "get",
+  "type": "control",
+  "check_key": "s_get19085"
+}
+
+{
+  "sendback_appserver": 100000007,
+  "param": {
+    "socket_id": 100000007,
+    "type": 1,
+    "check_key": "s_get19085"
+  },
+  "p": "get",
+  "type": "control",
+  "result": 0,
+  "check_key": "s_get19085"
+}
+
+{
+  "p": "post",
+  "param": {
+    "indoor": {
+      "charge": "0",
+      "signal": "0",
+      "t": "23",
+      "h": "58",
+      "p": "0",
+      "pm25": "36",
+      "co2": "1407",
+      "noise": "0",
+      "soc": "100",
+      "pressure": "0",
+      "manual": 1
+    }
+  }
+}
