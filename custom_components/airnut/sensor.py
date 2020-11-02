@@ -19,7 +19,7 @@ from homeassistant.const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-SCAN_INTERVAL = datetime.timedelta(seconds=90)
+SCAN_INTERVAL = datetime.timedelta(seconds=600)
 DEFAULT_NAME = 'Airnut 1S'
 
 ATTR_TEMPERATURE = 'temperature'
@@ -41,7 +41,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     name = config.get(CONF_NAME)
     connection_list = CONNECTION_LIST
     sock = socket(AF_INET, SOCK_STREAM)
-    sock.settimeout(1)
+    sock.settimeout(5)
     try:
         sock.bind(("0.0.0.0", 10511))
         sock.listen(5)
@@ -72,7 +72,6 @@ class AirnutSensor(Entity):
         self.sock = sock
         self._name = name
         self._state = None
-        self.lastUpdateTime = datetime.datetime.fromtimestamp(0)
         self.data = []
         self._state_attrs = {
             ATTR_PM25: None,
@@ -105,40 +104,41 @@ class AirnutSensor(Entity):
         self.sock.shutdown(2)
         self.sock.close()
         
-    def objectToJsonString(self, object):
+    def objectToJsonData(self, object):
         return json.dumps(object).encode('utf-8')
     
     def jsonStringToObject(self, data):
-        return json.loads(data.decode('utf-8'))
+        try:
+            return json.loads(data)
+        except:
+            return None
 
     def update(self):
         """
         Update current conditions.
         """
         
+        login_msg = {"type": "client", "socket_id": 19085, "result": 0, "p": "log_in"}
         check_msg = {"sendback_appserver": 100000007,"param": {"socket_id": 100000007,"type": 1,"check_key": "s_get19085"},"p": "get","type": "control","check_key": "s_get19085"}
-        if datetime.datetime.now() - self.lastUpdateTime >= SCAN_INTERVAL:
-            for sockA in self._connection_list:
-                if sockA is self.sock:
-                    continue
-                else:
+        for sockA in self._connection_list:
+            if sockA is self.sock:
+                continue
+            else:
+                try:
+                    sockA.send(self.objectToJsonData(check_msg))
+                    # _LOGGER.info('AirnutSensor send a checkMessage to %s', sockA.getpeername())
+                    break
+                except OSError as e:
+                    _LOGGER.warning(
+                        "AirnutSensor Force send a heartbeat got %s. Closing socket", e)
                     try:
-                        sockA.sendall(self.objectToJsonString(check_msg))
-                        self.lastUpdateTime = datetime.datetime.now()
-                        _LOGGER.info('AirnutSensor send a checkMessage to %s', sockA.getpeername())
-                        break
-                    except OSError as e:
-                        _LOGGER.warning(
-                            "AirnutSensor Force send a heartbeat got %s. Closing socket", e)
-                        try:
-                            sockA.shutdown(2)
-                            sockA.close()
-                        except OSError:
-                            pass
-                        self._connection_list.remove(sockA)
-                        continue
-        read_sockets, write_sockets, error_sockets = select.select(
-            self._connection_list, [], [], 0)
+                        sockA.shutdown(2)
+                        sockA.close()
+                    except OSError:
+                        pass
+                    self._connection_list.remove(sockA)
+                    continue
+        read_sockets, write_sockets, error_sockets = select.select(self._connection_list, [], [], 0)
         if len(self._connection_list) == 1:
             self.iClientEmptyLogCount += 1
             if self.iClientEmptyLogCount == 13:
@@ -163,15 +163,18 @@ class AirnutSensor(Entity):
                     "AirnutSensor going to accept new connection")
                 try:
                     sockfd, addr = self.sock.accept()
-                    sockfd.settimeout(1)
+                    sockfd.settimeout(5)
                     self._connection_list.append(sockfd)
-                    _LOGGER.warning(
-                        "AirnutSensor Client (%s, %s) connected" % addr)
+                    _LOGGER.warning("AirnutSensor Client (%s, %s) connected" % addr)
                     try:
-                        sockfd.sendall(self.objectToJsonString(check_msg))
-                        _LOGGER.info('AirnutSensor send a checkMessage to %s', sockA.getpeername())
+                        # _LOGGER.warning("AirnutSensor 1")
+                        # sockfd.send(self.objectToJsonData(login_msg))
+                        _LOGGER.warning("AirnutSensor 2")
+                        sockfd.send(self.objectToJsonData(check_msg))
+                        _LOGGER.warning("AirnutSensor 3")
+                        # _LOGGER.info('AirnutSensor send a checkMessage to %s', sockA.getpeername())
                     except OSError as e:
-                        _LOGGER.warning("AirnutSensor Client error %s", e)
+                        _LOGGER.warning("AirnutSensor Client error 1 %s", e)
                         sock.shutdown(2)
                         sock.close()
                         self._connection_list.remove(sockfd)
@@ -182,35 +185,37 @@ class AirnutSensor(Entity):
             else:
                 data = None
                 try:
-                    _LOGGER.debug("AirnutSensor Processing Client %s", sock.getpeername())
+                    # _LOGGER.debug("AirnutSensor Processing Client %s", sock.getpeername())
                     data = sock.recv(1024)
-                    _LOGGER.debug("AirnutSensor Processing Client %s", data)                    
+                    _LOGGER.debug("AirnutSensor Receive data %s", data)                    
                 except OSError as e:
-                    _LOGGER.warning("AirnutSensor Processing Client error %s", e)
+                    _LOGGER.warning("AirnutSensor Processing Client error 2 %s", e)
                     continue
-                if send_msg is not None:
-                    try:
-                        sock.sendall(self.objectToJsonString(send_msg))
-                    except OSError as e:
-                        _LOGGER.warning("AirnutSensor Client error %s", e)
-                        sock.shutdown(2)
-                        sock.close()
-                        self._connection_list.remove(sock)
-                        continue
+#                if send_msg is not None:
+#                    try:
+#                        self.sock.send(self.objectToJsonData(send_msg))
+#                    except OSError as e:
+#                        _LOGGER.warning("AirnutSensor Client error 3 %s", e)
+#                        sock.shutdown(2)
+#                        sock.close()
+#                        self._connection_list.remove(sock)
+#                        continue
                 if data:
-                    jsonData = self.jsonStringToObject(data)
-                    if jsonData is not None:
-                        self._state_attrs = {
-                            ATTR_PM25: int(jsonData["param"]["indoor"]["pm25"]),
-                            ATTR_TEMPERATURE: format(float(jsonData["param"]["indoor"]["t"]), '.1f'),
-                            ATTR_HUMIDITY: format(float(jsonData["param"]["indoor"]["h"]), '.1f'),
-                            ATTR_CO2: int(jsonData["param"]["indoor"]["co2"]),
-#                            ATTR_HCHO: format(float(jsonData['hcho']) / 1000, '.2f'),
-                            ATTR_VOLUME: volume_state,
-                        }
-                else:
-                    _LOGGER.warning("AirnutSensor Client offline, closing")
-                    sock.shutdown(2)
-                    sock.close()
-                    self._connection_list.remove(sock)
-                    continue
+                    datas = data.decode('utf-8').split("\n\r")
+                    for singleData in datas:
+                        jsonData = self.jsonStringToObject(singleData)
+                        if jsonData is not None and jsonData["p"] == "post":
+                            self._state_attrs = {
+                                ATTR_PM25: int(jsonData["param"]["indoor"]["pm25"]),
+                                ATTR_TEMPERATURE: format(float(jsonData["param"]["indoor"]["t"]), '.1f'),
+                                ATTR_HUMIDITY: format(float(jsonData["param"]["indoor"]["h"]), '.1f'),
+                                ATTR_CO2: int(jsonData["param"]["indoor"]["co2"]),
+    #                            ATTR_HCHO: format(float(jsonData['hcho']) / 1000, '.2f'),
+                                ATTR_VOLUME: volume_state,
+                            }
+#                else:
+#                    _LOGGER.warning("AirnutSensor Client offline, closing")
+#                    sock.shutdown(2)
+#                    sock.close()
+#                    self._connection_list.remove(sock)
+#                    continue
