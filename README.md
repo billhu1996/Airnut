@@ -8,6 +8,7 @@
 4. 进行如下配置
 5. 将空气果音量调成0，否则每次检测都会出声音（将input_number.airnut_1s_volume这个值调成0）
 
+```
 input_number:
   airnut_1s_volume:
     name: 1S空气果
@@ -20,7 +21,8 @@ input_number:
 sensor:
   - platform: airnut
     name: airnut1s
-    
+```
+
 ## 其他
 
 我不是利益相关方，只是二手产品购买者。
