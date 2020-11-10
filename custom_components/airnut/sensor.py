@@ -28,6 +28,7 @@ ATTR_PM25 = 'pm25'
 ATTR_CO2 = 'co2'
 ATTR_HCHO = 'hcho'
 ATTR_VOLUME = 'volume'
+ATTR_TIME = 'time'
 CONNECTION_LIST = []
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
@@ -117,6 +118,9 @@ class AirnutSensor(Entity):
         """
         Update current conditions.
         """
+        hour = datetime.datetime.now().hour
+        if hour > 22 or hour < 7:
+            return
         
         login_msg = {"type": "client", "socket_id": 19085, "result": 0, "p": "log_in"}
         check_msg = {"sendback_appserver": 100000007,"param": {"socket_id": 100000007,"type": 1,"check_key": "s_get19085"},"p": "get","type": "control","check_key": "s_get19085"}
@@ -212,6 +216,7 @@ class AirnutSensor(Entity):
                                 ATTR_CO2: int(jsonData["param"]["indoor"]["co2"]),
     #                            ATTR_HCHO: format(float(jsonData['hcho']) / 1000, '.2f'),
                                 ATTR_VOLUME: volume_state,
+                                ATTR_TIME: datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                             }
 #                else:
 #                    _LOGGER.warning("AirnutSensor Client offline, closing")
