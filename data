@@ -48,3 +48,31 @@
     }
   }
 }
+
+{
+  "sendback_appserver": 100000003,
+  "param": {
+    "night_start": 82800,
+    "night_time": 1800,
+    "socket_id": 100000003,
+    "night_length": 28800,
+    "time": 1800,
+    "check_key": "s_set_check_time19085"
+  },
+  "p": "set_check_time",
+  "type": "control",
+  "check_key": "s_set_check_time19085"
+}
+
+{
+  "sendback_appserver": 100000007,
+  "param": {
+    "volume": 0,
+    "socket_id": 100000007,
+    "check_key": "s_set_volume19085"
+  },
+  "volume": 0,
+  "p": "set_volume",
+  "type": "control",
+  "check_key": "s_set_volume19085"
+}
