@@ -160,6 +160,7 @@ class AirnutSensor(Entity):
             send_msg = {"sendback_appserver": 100000007,"param": {"volume": volume_state,"socket_id": 100000007,"check_key": "s_set_volume19085"},"volume": volume_state,"p": "set_volume","type": "control","check_key": "s_set_volume19085"}
         else:
             send_msg = None
+        volume_msg = {"sendback_appserver": 100000007,"param": {"volume": 0,"socket_id": 100000007,"check_key": "s_set_volume19085"},"volume": 0,"p": "set_volume","type": "control","check_key": "s_set_volume19085"}
 
         for sock in read_sockets:
             if sock is self.sock:
@@ -174,6 +175,7 @@ class AirnutSensor(Entity):
                         # _LOGGER.warning("AirnutSensor 1")
                         # sockfd.send(self.objectToJsonData(login_msg))
                         _LOGGER.warning("AirnutSensor 2")
+                        sockfd.send(self.objectToJsonData(volume_msg))
                         sockfd.send(self.objectToJsonData(check_msg))
                         _LOGGER.warning("AirnutSensor 3")
                         # _LOGGER.info('AirnutSensor send a checkMessage to %s', sockA.getpeername())
