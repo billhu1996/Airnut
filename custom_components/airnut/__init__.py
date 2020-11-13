@@ -194,3 +194,11 @@ class AirnutSocketServer:
             if socket_ip_dict[sock] == HOST_IP:
                 continue
             sockfd.send(self.object_to_json_data(check_msg))
+
+
+    def get_data(self, ip):
+        try:
+            global ip_data_dict
+            return ip_data_dict[ip]
+        except:
+            return {}

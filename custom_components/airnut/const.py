@@ -13,5 +13,13 @@ ATTR_CO2 = "co2"
 ATTR_VOLUME = "volume"
 ATTR_TIME = "time"
 
+#Unit
+MEASUREMENT_UNITE_DICT = {
+    ATTR_TEMPERATURE: "°C",
+    ATTR_HUMIDITY: "%",
+    ATTR_PM25: "ug/m³",
+    ATTR_CO2: "ppm",
+}
+
 # Defaults
 DEFAULT_SCAN_INTERVAL = 600
