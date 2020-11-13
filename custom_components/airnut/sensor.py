@@ -111,5 +111,5 @@ class AirnutSensor(Entity):
             self._state_attrs[self._type] = self._state
             self._state_attrs[ATTR_TIME] = data[ATTR_TIME]
         except:
-            _LOGGER.warning("AirnutSensor get data error with ip %s", self._ip)
+            _LOGGER.info("AirnutSensor get data error with ip %s", self._ip)
             return
