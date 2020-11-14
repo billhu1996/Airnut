@@ -28,7 +28,7 @@ from .const import (
 
 CONF_NIGHT_START_HOUR = "night_start_hour"
 CONF_NIGHT_END_HOUR = "night_end_hour"
-CONF_NIGHT_UPDATE = "night_update"
+CONF_IS_NIGHT_UPDATE = "is_night_update"
 HOST_IP = "0.0.0.0"
 
 SCAN_INTERVAL = datetime.timedelta(seconds=600)
@@ -40,7 +40,7 @@ CONFIG_SCHEMA = vol.Schema(
             {
                 vol.Optional(CONF_NIGHT_START_HOUR, default=ZERO_TIME): cv.datetime,
                 vol.Optional(CONF_NIGHT_END_HOUR, default=ZERO_TIME): cv.datetime,
-                vol.Optional(CONF_NIGHT_UPDATE, default=True): cv.boolean,
+                vol.Optional(CONF_IS_NIGHT_UPDATE, default=True): cv.boolean,
                 vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL): cv.time_period,
             }
         )
@@ -57,7 +57,7 @@ def setup(hass, config):
     """Set up platform using YAML."""
     night_start_hour = config[DOMAIN].get(CONF_NIGHT_START_HOUR)
     night_end_hour = config[DOMAIN].get(CONF_NIGHT_END_HOUR)
-    is_night_update = config[DOMAIN].get(CONF_NIGHT_UPDATE)
+    is_night_update = config[DOMAIN].get(CONF_IS_NIGHT_UPDATE)
     scan_interval = config[DOMAIN].get(CONF_SCAN_INTERVAL)
     
     server = AirnutSocketServer(night_start_hour, night_end_hour, is_night_update, scan_interval)
@@ -82,10 +82,10 @@ class AirnutSocketServer:
 
     def __init__(self, night_start_hour, night_end_hour, is_night_update, scan_interval):
         self._lastUpdateTime = ZERO_TIME
-        self.night_start_hour = night_start_hour.strftime("%H%M%S")
-        self.night_end_hour = night_end_hour.strftime("%H%M%S")
-        self.is_night_update = is_night_update
-        self.scan_interval = scan_interval
+        self._night_start_hour = night_start_hour.strftime("%H%M%S")
+        self._night_end_hour = night_end_hour.strftime("%H%M%S")
+        self._is_night_update = is_night_update
+        self._scan_interval = scan_interval
 
         self._socketServer = socket(AF_INET, SOCK_STREAM)
         try:
@@ -122,12 +122,12 @@ class AirnutSocketServer:
         self.deal_read_sockets(read_sockets)
 
         now_time = datetime.datetime.now()
-        if now_time - self._lastUpdateTime > self.scan_interval:
+        if now_time - self._lastUpdateTime > self._scan_interval:
             return
 
         now_time_str = datetime.datetime.now().strftime("%H%M%S")
-        if ((self.is_night_update is True) and
-            (self.night_start_hour < now_time_str or self.night_end_hour > now_time_str)):
+        if ((self._is_night_update is False) and
+            (self._night_start_hour < now_time_str or self._night_end_hour > now_time_str)):
             return
 
         self.deal_write_sockets(write_sockets)

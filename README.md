@@ -2,25 +2,50 @@
 
 ## 接入方式
 
-1. 用官方app连接好WiFi后，空气果亮绿灯，app无反应（app就已经不重要了，结束使命了）
-2. 在路由器中设置apn.airnut.com指向自己的ha内网地址，比如我的是192.168.123.4
+1. 在路由器自定义域名（DNS劫持，或其他名字）中设置***apn.airnut.com***指向自己的Home Assistant内网地址，比如我的是***192.168.123.4***，具体方法建议自行搜索。
+2. 用[Easylink app](https://www.mxchip.com/easylink/)连接好WiFi后(空气果亮绿灯即连接成功)，双击退出WiFi连接模式。
 3. 通过hacs安装，或者复制文件到custom_components
 4. 进行如下配置
-5. 将空气果音量调成0，否则每次检测都会出声音（将input_number.airnut_1s_volume这个值调成0）
 
 ```
-input_number:
-  airnut_1s_volume:
-    name: 1S空气果
-    icon: mdi:led-on
-    initial: 0
-    min: 0
-    max: 100
-    step: 1
+#这个是必须有的
+airnut:
+  #夜间是否更新
+  is_night_update: False
+  #夜间开始时间
+  night_start_hour: 0001-01-01 23:00:00
+  #夜间结束时间
+  night_end_hour: 0001-01-01 06:00:00
 
+#ip为空气果内网的ip地址，空气果1s共四项数据，分别写四个类型的传感器
 sensor:
   - platform: airnut
-    name: airnut1s
+    ip: "192.168.123.61"
+    type: co2
+  - platform: airnut
+    ip: "192.168.123.61"
+    type: temperature
+  - platform: airnut
+    ip: "192.168.123.61"
+    type: humidity
+  - platform: airnut
+    ip: "192.168.123.61"
+    type: pm25
+
+#如果有第二个空气果，可以在下面继续，以此类推
+  - platform: airnut
+    ip: "192.168.123.62"
+    type: co2
+  - platform: airnut
+    ip: "192.168.123.62"
+    type: temperature
+  - platform: airnut
+    ip: "192.168.123.62"
+    type: humidity
+  - platform: airnut
+    ip: "192.168.123.62"
+    type: pm25
+
 ```
 
 ## 其他
