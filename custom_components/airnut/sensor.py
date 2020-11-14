@@ -94,17 +94,13 @@ class AirnutSensor(Entity):
     def unit_of_measurement(self):
         """Return the unit this state is expressed in."""
         return MEASUREMENT_UNITE_DICT[self._type]
-    
-    @property
-    def icon(self):
-        return self._icon
 
     async def async_added_to_hass(self):
         """Once the entity is added we should update to get the initial data loaded."""
         self.async_schedule_update_ha_state(True)
 
     async def async_update(self):
-        await self.hass.async_add_executor_job(self._server.update)
+        self.hass.async_add_executor_job(self._server.update)
         try:
             data = self._server.get_data(self._ip)
             self._state = data[self._type]

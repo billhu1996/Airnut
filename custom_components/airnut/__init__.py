@@ -60,7 +60,7 @@ def setup(hass, config):
     is_night_update = config[DOMAIN].get(CONF_NIGHT_UPDATE)
     scan_interval = config[DOMAIN].get(CONF_SCAN_INTERVAL)
     
-    server =  AirnutSocketServer(night_start_hour, night_end_hour, is_night_update, scan_interval)
+    server = AirnutSocketServer(night_start_hour, night_end_hour, is_night_update, scan_interval)
 
     hass.data[DOMAIN] = {
         'server': server
@@ -87,17 +87,16 @@ class AirnutSocketServer:
         self.is_night_update = is_night_update
         self.scan_interval = scan_interval
 
-        socketServer = socket(AF_INET, SOCK_STREAM)
-        socketServer.settimeout(5)
+        self._socketServer = socket(AF_INET, SOCK_STREAM)
         try:
-            socketServer.bind((HOST_IP, 10511))
-            socketServer.listen(5)
+            self._socketServer.bind((HOST_IP, 10511))
+            self._socketServer.listen(5)
         except OSError as e:
             _LOGGER.error("server got %s", e)
             pass
 
         global socket_ip_dict
-        socket_ip_dict[socketServer] = HOST_IP
+        socket_ip_dict[self._socketServer] = HOST_IP
 
         _LOGGER.debug("socket Server loaded")
         self.update()
@@ -143,14 +142,14 @@ class AirnutSocketServer:
     def deal_read_sockets(self, read_sockets):
         volume_msg = {"sendback_appserver": 100000007,"param": {"volume": 0,"socket_id": 100000007,"check_key": "s_set_volume19085"},"volume": 0,"p": "set_volume","type": "control","check_key": "s_set_volume19085"}
         check_msg = {"sendback_appserver": 100000007,"param": {"socket_id": 100000007,"type": 1,"check_key": "s_get19085"},"p": "get","type": "control","check_key": "s_get19085"}
+        global ip_data_dict
         for sock in read_sockets:
-            if socket_ip_dict[sock] == HOST_IP:
+            if sock == self._socketServer:
                 _LOGGER.info("going to accept new connection")
                 try:
-                    sockfd, addr = self.sock.accept()
-                    sockfd.settimeout(5)
-                    socket_ip_dict[sockfd] = addr
-                    _LOGGER.info("Client (%s) connected", addr)
+                    sockfd, (host, _) = sock.accept()
+                    socket_ip_dict[sockfd] = host
+                    _LOGGER.info("Client (%s) connected", socket_ip_dict[sockfd])
                     try:
                         sockfd.send(self.object_to_json_data(volume_msg))
                         sockfd.send(self.object_to_json_data(check_msg))
@@ -178,7 +177,6 @@ class AirnutSocketServer:
                         jsonData = self.json_string_to_object(singleData)
                         if (jsonData is not None and
                             jsonData["p"] == "post"):
-                            global ip_data_dict
                             ip_data_dict[socket_ip_dict[sock]] = {
                                 ATTR_PM25: int(jsonData["param"]["indoor"]["pm25"]),
                                 ATTR_TEMPERATURE: format(float(jsonData["param"]["indoor"]["t"]), '.1f'),
@@ -186,12 +184,13 @@ class AirnutSocketServer:
                                 ATTR_CO2: int(jsonData["param"]["indoor"]["co2"]),
                                 ATTR_TIME: datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                             }
+                            _LOGGER.debug("ip_data_dict %s", ip_data_dict)
 
     def deal_write_sockets(self, write_sockets):
         global socket_ip_dict
         check_msg = {"sendback_appserver": 100000007,"param": {"socket_id": 100000007,"type": 1,"check_key": "s_get19085"},"p": "get","type": "control","check_key": "s_get19085"}
         for sock in write_sockets:
-            if socket_ip_dict[sock] == HOST_IP:
+            if sock == self._socketServer:
                 continue
             sockfd.send(self.object_to_json_data(check_msg))
 
@@ -202,3 +201,9 @@ class AirnutSocketServer:
             return ip_data_dict[ip]
         except:
             return {}
+
+    def unload(self):
+        """Signal shutdown of sock."""
+        _LOGGER.debug("AirnutSensor Sock close")
+        self._socketServer.shutdown(2)
+        self._socketServer.close()
