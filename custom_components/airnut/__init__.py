@@ -67,7 +67,6 @@ def setup(hass, config):
     }
     return True
 
-
 async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(entry, "sensor")
@@ -76,7 +75,11 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
 
 async def async_unload_entry(hass, entry):
     """Unload a config entry."""
-    return await hass.config_entries.async_forward_entry_unload(entry, "sensor")
+    hass.config_entries.async_forward_entry_unload(entry, "sensor")
+
+    await hass.async_add_executor_job(hass.data[DOMAIN]['server'].unload)
+
+    return True
 
 class AirnutSocketServer:
 
@@ -122,13 +125,13 @@ class AirnutSocketServer:
         self.deal_read_sockets(read_sockets)
 
         now_time = datetime.datetime.now()
-        if now_time - self._lastUpdateTime > self._scan_interval:
-            return
+        if now_time - self._lastUpdateTime < self._scan_interval:
+            return True
 
         now_time_str = datetime.datetime.now().strftime("%H%M%S")
         if ((self._is_night_update is False) and
             (self._night_start_hour < now_time_str or self._night_end_hour > now_time_str)):
-            return
+            return True
 
         self.deal_write_sockets(write_sockets)
 
@@ -204,6 +207,6 @@ class AirnutSocketServer:
 
     def unload(self):
         """Signal shutdown of sock."""
-        _LOGGER.debug("AirnutSensor Sock close")
+        _LOGGER.info("AirnutSensor Sock close")
         self._socketServer.shutdown(2)
         self._socketServer.close()
