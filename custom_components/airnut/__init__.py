@@ -127,14 +127,16 @@ class AirnutSocketServer:
         now_time = datetime.datetime.now()
         if now_time - self._lastUpdateTime < self._scan_interval:
             return True
+        
+        self._lastUpdateTime = now_time
 
         now_time_str = datetime.datetime.now().strftime("%H%M%S")
         if ((self._is_night_update is False) and
             (self._night_start_hour < now_time_str or self._night_end_hour > now_time_str)):
             return True
 
-        self.deal_write_sockets(write_sockets)
-
+        self.deal_write_sockets(socket_ip_dict.keys())
+        
         return True
     
     def deal_error_sockets(self, error_sockets):
@@ -179,6 +181,9 @@ class AirnutSocketServer:
                     for singleData in datas:
                         jsonData = self.json_string_to_object(singleData)
                         if (jsonData is not None and
+                            jsonData["p"] == "log_in"):
+                            sock.send(self.object_to_json_data({"type": "client", "socket_id": 18567, "result": 0, "p": "log_in"}))
+                        if (jsonData is not None and
                             jsonData["p"] == "post"):
                             ip_data_dict[socket_ip_dict[sock]] = {
                                 ATTR_PM25: int(jsonData["param"]["indoor"]["pm25"]),
@@ -195,7 +200,7 @@ class AirnutSocketServer:
         for sock in write_sockets:
             if sock == self._socketServer:
                 continue
-            sockfd.send(self.object_to_json_data(check_msg))
+            sock.send(self.object_to_json_data(check_msg))
 
 
     def get_data(self, ip):
