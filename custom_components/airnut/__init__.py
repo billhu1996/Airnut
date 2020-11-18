@@ -200,7 +200,10 @@ class AirnutSocketServer:
         for sock in write_sockets:
             if sock == self._socketServer:
                 continue
-            sock.send(self.object_to_json_data(check_msg))
+            try:
+                sock.send(self.object_to_json_data(check_msg))
+            except:
+                del socket_ip_dict[sock]
 
 
     def get_data(self, ip):
