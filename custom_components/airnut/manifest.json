@@ -4,5 +4,6 @@
   "documentation": "https://github.com/home-assistant/core",
   "dependencies": [],
   "codeowners": [],
-  "requirements": []
+  "requirements": [],
+  "version": "2.0.0"
 }
