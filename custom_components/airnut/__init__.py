@@ -5,7 +5,7 @@ import datetime
 import json
 import select
 import voluptuous as vol
-from socket import socket, AF_INET, SOCK_STREAM
+from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.typing import HomeAssistantType
@@ -91,6 +91,7 @@ class AirnutSocketServer:
         self._scan_interval = scan_interval
 
         self._socketServer = socket(AF_INET, SOCK_STREAM)
+        self._socketServer.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
         try:
             self._socketServer.bind((HOST_IP, 10511))
             self._socketServer.listen(5)
