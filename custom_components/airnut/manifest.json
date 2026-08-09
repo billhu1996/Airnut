@@ -1,9 +1,16 @@
 {
   "domain": "airnut",
-  "name": "1s",
-  "documentation": "https://github.com/home-assistant/core",
+  "name": "Airnut 1S",
+  "documentation": "https://github.com/billhu1996/Airnut",
+  "issue_tracker": "https://github.com/billhu1996/Airnut/issues",
   "dependencies": [],
-  "codeowners": [],
+  "codeowners": [
+    "@billhu1996"
+  ],
   "requirements": [],
-  "version": "2.0.0"
+  "config_flow": true,
+  "integration_type": "hub",
+  "iot_class": "local_push",
+  "loggers": ["airnut"],
+  "version": "2.1.0"
 }

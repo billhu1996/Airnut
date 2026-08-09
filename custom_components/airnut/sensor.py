@@ -5,107 +5,74 @@ Developer by billhu
 """
 import logging
 import datetime
-import voluptuous as vol
-from homeassistant.components.sensor import PLATFORM_SCHEMA
-from homeassistant.helpers.entity import Entity
-import homeassistant.helpers.config_validation as cv
-from homeassistant.const import CONF_NAME
+
+from homeassistant.components.sensor import SensorEntity
+from homeassistant.helpers.device_registry import DeviceInfo
 
 from .const import (
     DOMAIN,
+    CONF_IP,
     ATTR_TEMPERATURE,
     ATTR_HUMIDITY,
     ATTR_PM25,
     ATTR_CO2,
-    ATTR_VOLUME,
     ATTR_TIME,
     MEASUREMENT_UNITE_DICT,
+    SENSOR_TYPES,
 )
-
-CONF_TYPE = "type"
-CONF_IP = "ip"
-DEFAULT_NAME = 'Airnut 1S'
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-    vol.Required(CONF_IP): cv.string,
-    vol.Required(CONF_TYPE): vol.Any(ATTR_TEMPERATURE, ATTR_HUMIDITY, ATTR_PM25, ATTR_CO2),
-})
 
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-    """Setup the sensor platform."""
-    if DOMAIN in hass.data:
-        server = hass.data[DOMAIN]['server']
-        async_add_entities([AirnutSensor(config, server)],True)
-     
 async def async_setup_entry(hass, entry, async_add_entities):
     """Setup sensor platform."""
-    if DOMAIN in hass.data:
-        server = hass.data[DOMAIN]['server']
-        async_add_entities(
-            [AirnutSensor(entry.data, server)], False,
-        )
-    return True
+    server = hass.data[DOMAIN]["server"]
+    ip = entry.data[CONF_IP]
 
-class AirnutSensor(Entity):
+    entities = []
+    for sensor_type in SENSOR_TYPES:
+        entities.append(AirnutSensor(entry, server, ip, sensor_type))
+
+    async_add_entities(entities, update_before_add=True)
+
+
+class AirnutSensor(SensorEntity):
     """Implementing the Airnut 1S sensor."""
 
-    def __init__(self, config, server):
+    _attr_should_poll = True
+
+    def __init__(self, config_entry, server, ip, sensor_type):
         """Initialize the sensor."""
-        _LOGGER.info("AirnutSensor __init__")
-        self.config = config
+        self.config_entry = config_entry
         self._server = server
-        self._type = config.get(CONF_TYPE)
-        self._ip = config.get(CONF_IP)
-        self._name = config.get(CONF_NAME)
-        if self._name == DEFAULT_NAME:
-            self._name += "_" + self._type
-        self._icon = None
-        self._state = None
-        self._state_attrs = {
-            self._type: None,
+        self._ip = ip
+        self._sensor_type = sensor_type
+
+        ip_clean = ip.replace(".", "_")
+        self._attr_unique_id = f"airnut_{ip_clean}_{sensor_type}"
+        self._attr_translation_key = sensor_type
+        self._attr_has_entity_name = True
+        self._attr_native_unit_of_measurement = MEASUREMENT_UNITE_DICT[sensor_type]
+        self._attr_native_value = None
+        self._attr_extra_state_attributes = {
+            sensor_type: None,
             ATTR_TIME: None,
         }
-#        await self.hass.async_add_executor_job(self.async_update)
-
-    @property
-    def unique_id(self):
-        """Return a unique ID to use for this sensor."""
-        return self.config.get("unique_id", None)
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-        return self._name
-
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-        return self._state
-
-    @property
-    def device_state_attributes(self):
-        """Return the state of the sensor."""
-        return self._state_attrs
-    
-    @property
-    def unit_of_measurement(self):
-        """Return the unit this state is expressed in."""
-        return MEASUREMENT_UNITE_DICT[self._type]
-
-    async def async_added_to_hass(self):
-        """Once the entity is added we should update to get the initial data loaded."""
-        self.async_schedule_update_ha_state(True)
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, ip_clean)},
+            name=f"Airnut 1S ({ip})",
+            manufacturer="Airnut",
+            model="1S",
+        )
 
     async def async_update(self):
-        self.hass.async_add_executor_job(self._server.update)
+        """Update the sensor data."""
+        await self.hass.async_add_executor_job(self._server.update)
         try:
             data = self._server.get_data(self._ip)
-            self._state = data[self._type]
-            self._state_attrs[self._type] = self._state
-            self._state_attrs[ATTR_TIME] = data[ATTR_TIME]
-        except:
+            self._attr_native_value = data[self._sensor_type]
+            self._attr_extra_state_attributes[self._sensor_type] = self._attr_native_value
+            self._attr_extra_state_attributes[ATTR_TIME] = data[ATTR_TIME]
+        except Exception:
             _LOGGER.info("AirnutSensor get data error with ip %s", self._ip)
             return

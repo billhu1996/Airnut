@@ -1,0 +1,69 @@
+{
+    "config": {
+        "flow_title": "Airnut 1S",
+        "step": {
+            "user": {
+                "title": "Add Airnut 1S",
+                "description": "Configure your Airnut 1S device for Home Assistant.",
+                "data": {
+                    "ip": "Device IP Address",
+                    "night_start_hour": "Night Start Time (HH:MM)",
+                    "night_end_hour": "Night End Time (HH:MM)",
+                    "is_night_update": "Update During Night"
+                }
+            },
+            "reconfigure": {
+                "title": "Reconfigure Airnut 1S",
+                "description": "Modify the configuration of your Airnut 1S device.",
+                "data": {
+                    "ip": "Device IP Address",
+                    "night_start_hour": "Night Start Time (HH:MM)",
+                    "night_end_hour": "Night End Time (HH:MM)",
+                    "is_night_update": "Update During Night"
+                }
+            }
+        },
+        "error": {
+            "invalid_ip": "Invalid IP address format",
+            "already_configured": "This device is already configured.",
+            "unknown_error": "An unknown error occurred"
+        },
+        "abort": {
+            "already_configured": "This device is already configured."
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Edit Airnut 1S Configuration",
+                "description": "Modify the configuration of your Airnut 1S device.",
+                "data": {
+                    "ip": "Device IP Address",
+                    "night_start_hour": "Night Start Time (HH:MM)",
+                    "night_end_hour": "Night End Time (HH:MM)",
+                    "is_night_update": "Update During Night"
+                }
+            }
+        },
+        "error": {
+            "invalid_ip": "Invalid IP address format",
+            "unknown_error": "An unknown error occurred"
+        }
+    },
+    "entity": {
+        "sensor": {
+            "temperature": {
+                "name": "Temperature"
+            },
+            "humidity": {
+                "name": "Humidity"
+            },
+            "pm25": {
+                "name": "PM2.5"
+            },
+            "co2": {
+                "name": "CO2"
+            }
+        }
+    }
+}

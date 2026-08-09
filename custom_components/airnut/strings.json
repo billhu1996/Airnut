@@ -1,0 +1,68 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "添加空气果 1S",
+        "description": "配置您的空气果 1S 设备以接入 Home Assistant。",
+        "data": {
+          "ip": "设备 IP 地址",
+          "night_start_hour": "夜间开始时间 (HH:MM)",
+          "night_end_hour": "夜间结束时间 (HH:MM)",
+          "is_night_update": "夜间更新数据"
+        }
+      },
+      "reconfigure": {
+        "title": "重新配置空气果 1S",
+        "description": "修改空气果 1S 设备的配置。",
+        "data": {
+          "ip": "设备 IP 地址",
+          "night_start_hour": "夜间开始时间 (HH:MM)",
+          "night_end_hour": "夜间结束时间 (HH:MM)",
+          "is_night_update": "夜间更新数据"
+        }
+      }
+    },
+    "error": {
+      "invalid_ip": "IP 地址格式无效",
+      "already_configured": "该设备已配置。",
+      "unknown_error": "发生未知错误"
+    },
+    "abort": {
+      "already_configured": "该设备已配置。"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "编辑空气果 1S 配置",
+        "description": "修改空气果 1S 设备的配置。",
+        "data": {
+          "ip": "设备 IP 地址",
+          "night_start_hour": "夜间开始时间 (HH:MM)",
+          "night_end_hour": "夜间结束时间 (HH:MM)",
+          "is_night_update": "夜间更新数据"
+        }
+      }
+    },
+    "error": {
+      "invalid_ip": "IP 地址格式无效",
+      "unknown_error": "发生未知错误"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temperature": {
+        "name": "温度"
+      },
+      "humidity": {
+        "name": "湿度"
+      },
+      "pm25": {
+        "name": "PM2.5"
+      },
+      "co2": {
+        "name": "CO2"
+      }
+    }
+  }
+}
