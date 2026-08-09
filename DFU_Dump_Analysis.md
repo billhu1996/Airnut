@@ -112,6 +112,7 @@ Unique ID / Flash 容量寄存器均无法直接读（返回"命令回显"，首
 
 | 属性 | 值 |
 |---|---|
+| 设备标识 | WiFi MAC `c8:93:46:cc:32:db`，内网 IP `192.168.123.61` |
 | Dump 文件 | `firmware/airnut2_full_flash_1MB.bin`（1,048,576 字节，整片） |
 | SHA256 | `ad6714c99fb6f6a63aa822130b6bc000aa1055d7c585438ecf0ca89543232ad4` |
 | 向量表 | 初始 SP `0x20003080`，Reset Handler `0x08008651` |
