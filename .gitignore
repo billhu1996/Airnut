@@ -1,2 +1,4 @@
 .DS_Store
 SDCard/
+__pycache__/
+*.pyc
