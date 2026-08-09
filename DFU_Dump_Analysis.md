@@ -5,6 +5,7 @@
 | 属性 | 值 |
 |---|---|
 | 读取日期 | 2026-08-09 |
+| 设备标识 | WiFi MAC `c8:93:46:c6:cf:4f`，内网 IP `192.168.123.62` |
 | 读取方式 | STM32 内置 DFU bootloader（DfuSe 协议，只读 UPLOAD） |
 | DFU 枚举 | STMicroelectronics "DFU in FS Mode"，USB ID `0483:df11`，序列号 `00000000010C`，Full-Speed |
 | 目标芯片 | **STM32F407VG**（Cortex-M4，**1MB Flash**） |
